@@ -1,61 +1,121 @@
 package ru.alexandrina.library.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.alexandrina.library.dto.BookRequestDto;
+import ru.alexandrina.library.dto.BookResponseDto;
 import ru.alexandrina.library.entity.Book;
+import ru.alexandrina.library.exception.AuthorNotFoundException;
+import ru.alexandrina.library.exception.BookNotFoundException;
+import ru.alexandrina.library.exception.PublisherNotFoundException;
+import ru.alexandrina.library.filter.BookFilter;
+import ru.alexandrina.library.mapper.BookMapper;
+import ru.alexandrina.library.repository.AuthorRepository;
 import ru.alexandrina.library.repository.BookRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
+import ru.alexandrina.library.repository.PublisherRepository;
+
+import java.util.ArrayList;
 
 @Service
 public class BookService {
-    @Autowired
+
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
+    private final PublisherRepository publisherRepository;
+    private final BookMapper bookMapper;
 
-    public BookService(BookRepository bookRepository) {
+    @Autowired
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, PublisherRepository genreRepository, BookMapper bookMapper) {
         this.bookRepository = bookRepository;
+        this.authorRepository = authorRepository;
+        this.publisherRepository = genreRepository;
+        this.bookMapper = bookMapper;
     }
 
-    /**
-     * метод возвращает книгу по её Id
-     *
-     * @param id
-     * @return Book
-     */
-    public Book findBook(int id) {
-        return bookRepository.findById(id).get();
+    @Transactional
+    public BookResponseDto create(BookRequestDto bookRequestDto) {
+        Book book = bookMapper.toEntity(bookRequestDto);
+
+        fillAuthorsAndPublishers(book, bookRequestDto);
+        return bookMapper.toDto(bookRepository.save(book));
     }
 
-    /**
-     * метод добавляет в БД книгу
-     *
-     * @param book
-     * @return book
-     */
+    @Transactional
+    public BookResponseDto update(Long id, BookRequestDto bookRequestDto) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+        bookMapper.fillEntity(bookRequestDto, book);
+        fillAuthorsAndPublishers(book, bookRequestDto);
 
-    public Book addBook(Book book) {
-        return bookRepository.save(book);
+        return bookMapper.toDto(bookRepository.save(book));
     }
 
-    /**
-     * метод обновляет книгу в БД
-     *
-     * @param book
-     * @return метод возвращает обновленного автора
-     */
-
-    public Book editBook(Book book) {
-        return bookRepository.save(book);
+    @Transactional(readOnly = true)
+    public BookResponseDto get(Long id) {
+        return bookMapper.toDto(
+                bookRepository.findById(id)
+                        .orElseThrow(() -> new BookNotFoundException(id))
+        );
     }
 
-    /**
-     * метод удаляет книгу из БД
-     *
-     * @param id
-     * @return метод возвращает удалённую книгу
-     */
+    @Transactional
+    public BookResponseDto delete(Long id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+        return bookMapper.toDto(book);
+    }
 
-    public ResponseEntity<?> removeBook(int id) {
-        bookRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+
+    @Transactional(readOnly = true)
+    public List<BookResponseDto> list(BookFilter bookFilter) {
+        Specification<Book> specification = Specification.where((root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (bookFilter.getTitle() != null) {
+                predicates.add(criteriaBuilder.like(root.get("title"), "%" + bookFilter.getTitle() + "%"));
+            }
+            if (bookFilter.getYear() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("year"), bookFilter.getYear()));
+            }
+            if (bookFilter.getPagesFrom() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("pages"), bookFilter.getPagesFrom()));
+            }
+            if (bookFilter.getPagesTo() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("pages"), bookFilter.getPagesTo()));
+            }
+            if (bookFilter.getAuthor() != null) {
+                predicates.add(criteriaBuilder.in(root.get("authors").get("name")).in(bookFilter.getAuthor()));
+            }
+            if (bookFilter.getGenre() != null) {
+                predicates.add(criteriaBuilder.in(root.get("genres").get("title")).in(bookFilter.getGenre()));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[]{}));
+        });
+        return bookRepository.findAll(specification).stream()
+                .map(bookMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private void fillAuthorsAndPublishers(Book book, BookRequestDto bookRequestDto) {
+        book.setAuthors(
+                bookRequestDto.getAuthorsIds().stream()
+                        .map(authorId -> authorRepository.findById(authorId)
+                                .orElseThrow(() -> new AuthorNotFoundException(authorId))
+                        )
+                        .collect(Collectors.toList())
+        );
+        book.setPublishers(
+                bookRequestDto.getPublishersIds().stream()
+                        .map(genreId -> publisherRepository.findById(genreId)
+                                .orElseThrow(() -> new PublisherNotFoundException(genreId))
+                        )
+                        .collect(Collectors.toList())
+        );
     }
 }

@@ -1,36 +1,44 @@
 package ru.alexandrina.library.entity;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Collection;
 
 
-
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Data
-@ToString
-@Table(name = "book")
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "books")
 public class Book {
 
     @Id
-    @GeneratedValue
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column
-    private String name;
+    @Column(nullable = false, length = 32)
+    private String title;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id")
-    @JsonIgnore
-    private Author author;
+    @Column(name = "year")
+    private Integer year;
 
-    @ManyToOne
-    @JoinColumn(name = "publishing_id")
-    @JsonIgnore
-    private Publishing publishing;
+    private Integer pages;
+
+    @ManyToMany
+    @JoinTable(
+            name = "authors_to_books",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private Collection<Author> authors;
+
+    @ManyToMany
+    @JoinTable(
+            name = "publishers_to_books",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "publisher_id")
+    )
+    private Collection<Publisher> publishers;
 }
