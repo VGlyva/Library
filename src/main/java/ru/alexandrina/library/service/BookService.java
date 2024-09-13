@@ -91,10 +91,10 @@ public class BookService {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("pages"), bookFilter.getPagesTo()));
             }
             if (bookFilter.getAuthor() != null) {
-                predicates.add(criteriaBuilder.in(root.get("authors").get("name")).in(bookFilter.getAuthor()));
+                predicates.add(root.get("authors").get("name").in(bookFilter.getAuthor()));
             }
             if (bookFilter.getPublisher() != null) {
-                predicates.add(criteriaBuilder.in(root.get("publishers").get("title")).in(bookFilter.getPublisher()));
+                predicates.add(root.get("publishers").get("title").in(bookFilter.getPublisher()));
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[]{}));
         });
