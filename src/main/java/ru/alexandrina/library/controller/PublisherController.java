@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("publisher")
+@RequestMapping("publishers")
 @Tag(name = "Издательства", description = "CRUD методы для работы с издательствами")
 public class PublisherController {
 

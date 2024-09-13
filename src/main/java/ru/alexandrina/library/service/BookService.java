@@ -32,10 +32,10 @@ public class BookService {
     private final BookMapper bookMapper;
 
     @Autowired
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, PublisherRepository genreRepository, BookMapper bookMapper) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, PublisherRepository publisherRepository, BookMapper bookMapper) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
-        this.publisherRepository = genreRepository;
+        this.publisherRepository = publisherRepository;
         this.bookMapper = bookMapper;
     }
 

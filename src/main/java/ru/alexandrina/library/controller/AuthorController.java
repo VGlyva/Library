@@ -83,7 +83,7 @@ public class AuthorController {
     @Operation(summary = "Получение списка авторов, отфильтрованных по опциональному параметру")
     @ApiResponses(
             value = {
-                    @ApiResponse(responseCode = "201", description = "Жанры успешно найдены"),
+                    @ApiResponse(responseCode = "201", description = "Авторы успешно найдены"),
                     @ApiResponse(responseCode = "400", description = "Некорректные параметры фильтрации"),
             }
     )

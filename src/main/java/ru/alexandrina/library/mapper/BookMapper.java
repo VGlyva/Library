@@ -2,7 +2,6 @@ package ru.alexandrina.library.mapper;
 
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import ru.alexandrina.library.dto.BookRequestDto;

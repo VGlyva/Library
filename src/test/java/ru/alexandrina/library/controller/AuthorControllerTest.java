@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles(profiles = {"h2-database", "without-liquibase"})
+@ActiveProfiles(profiles = {"h2-database"})
 public class AuthorControllerTest extends Generator {
 
     @LocalServerPort

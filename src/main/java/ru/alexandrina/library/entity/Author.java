@@ -7,7 +7,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -16,7 +15,7 @@ import java.util.List;
 @Table(name = "authors")
 public class Author {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 30)
