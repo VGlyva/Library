@@ -1,125 +1,96 @@
 package ru.alexandrina.library.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.alexandrina.library.entity.Book;
+import ru.alexandrina.library.dto.BookRequestDto;
+import ru.alexandrina.library.dto.BookResponseDto;
+import ru.alexandrina.library.filter.BookFilter;
 import ru.alexandrina.library.service.BookService;
+
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("book")
-@RequiredArgsConstructor
+@Tag(name = "Книги", description = "CRUD методы по работе с книгами")
 public class BookController {
 
-    @Autowired
     private final BookService bookService;
 
-    @Operation(
-            summary = "Получение информации о книге",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Найдена книга"
-                    ),
+    @Autowired
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
 
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Книга не найдена"
-                    )},
-            tags = "Книги"
+    @Operation(summary = "Добавление книги")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Книга успешно добавлена"),
+                    @ApiResponse(responseCode = "400", description = "Невалидное поле DTO"),
+                    @ApiResponse(responseCode = "404", description = "Жанр или автор не найден по id"),
+            }
     )
-
-    @GetMapping("{id}")
-    public ResponseEntity<Book> getBook(@PathVariable int id) {
-        Book book = bookService.findBook(id);
-        if (book == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(book);
+    @PostMapping
+    public ResponseEntity<BookResponseDto> create(@RequestBody @Valid BookRequestDto bookRequestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.create(bookRequestDto));
     }
 
-    @Operation(
-            summary = "Добавление книги",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = Book.class
-                            )
-                    )}
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Книга добавлена"
-                    ),
 
-            },
-            tags = "Книги"
+    @Operation(summary = "Обновление книги по id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Книга успешно обновлена"),
+                    @ApiResponse(responseCode = "400", description = "Невалидное поле DTO"),
+                    @ApiResponse(responseCode = "404", description = "Книга, жанр или автор не найдены по id"),
+            }
     )
-
-    @PostMapping()
-    public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        Book createBook = bookService.addBook(book);
-        return ResponseEntity.ok(createBook);
+    @PutMapping("/{id}")
+    public BookResponseDto update(@PathVariable Long id,
+                                  @RequestBody @Valid BookRequestDto bookRequestDto) {
+        return bookService.update(id, bookRequestDto);
     }
 
-    @Operation(summary = "Обновление книги",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = Book.class)
-                            )
-                    ),
-
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Некорректный запрос"
-                    ),
-
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Книга не найдена"
-                    )
-            },
-            tags = "Книги")
-
-    @PutMapping("{id}")
-    public ResponseEntity<Book> editBook(@RequestBody Book book) {
-        Book foundBook = bookService.editBook(book);
-        if (foundBook == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.ok(foundBook);
-    }
-
-    @Operation(summary = "Удаление книги",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200"
-                    ),
-
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Книга не найдена"
-                    )
-            },
-            tags = "Книги")
-
-    @DeleteMapping("{id}")
-    public void deleteBook(@PathVariable int id) {
-        bookService.removeBook(id);
+    @Operation(summary = "Получение книги по id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Книга успешно найдена"),
+                    @ApiResponse(responseCode = "404", description = "Книга с таким id не найдена"),
+            }
+    )
+    @GetMapping("/{id}")
+    public BookResponseDto get(@PathVariable Long id) {
+        return bookService.get(id);
     }
 
 
+    @Operation(summary = "Удаление книги по id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Книга успешно удалена"),
+                    @ApiResponse(responseCode = "404", description = "Книга с таким id не найдена"),
+            }
+    )
+    @DeleteMapping("/{id}")
+    public BookResponseDto delete(@PathVariable Long id) {
+        return bookService.delete(id);
+    }
+
+    @Operation(summary = "Получение списка книг, отфильтрованных по опциональному параметру")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Книги успешно найдены"),
+                    @ApiResponse(responseCode = "400", description = "Некорректные параметры фильтрации"),
+            }
+    )
+    @GetMapping
+    public List<BookResponseDto> list(@Valid BookFilter bookFilter) {
+        return bookService.list(bookFilter);
+    }
 }

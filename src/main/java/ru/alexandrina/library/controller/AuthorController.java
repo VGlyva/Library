@@ -1,122 +1,94 @@
 package ru.alexandrina.library.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.alexandrina.library.entity.Author;
+import ru.alexandrina.library.dto.AuthorDto;
+import ru.alexandrina.library.filter.AuthorFilter;
 import ru.alexandrina.library.service.AuthorService;
+
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+
+import java.util.List;
 
 @RestController
 @RequestMapping("author")
-@RequiredArgsConstructor
+@Tag(name = "Авторы", description = "CRUD методы по работе с авторами")
 public class AuthorController {
 
-    @Autowired
     private final AuthorService authorService;
 
-    @Operation(
-            summary = "Получение информации об авторе",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Найден автор"
-                    ),
+    @Autowired
+    public AuthorController(AuthorService authorService) {
+        this.authorService = authorService;
+    }
 
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Автор не найден"
-                    )},
-            tags = "Авторы"
+    @Operation(summary = "Добавление автора")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Автор успешно добавлен"),
+                    @ApiResponse(responseCode = "400", description = "Невалидное поле DTO"),
+            }
     )
-
-    @GetMapping("{id}")
-    public ResponseEntity<Author> getAuthor(@PathVariable int id) {
-        Author author = authorService.findAuthor(id);
-        if (author == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(author);
+    @PostMapping
+    public ResponseEntity<AuthorDto> create(@RequestBody @Valid AuthorDto authorDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authorService.create(authorDto));
     }
 
-    @Operation(
-            summary = "Добавление автора",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = Author.class
-                            )
-                    )}
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Автор добавлен"
-                    ),
 
-            },
-            tags = "Авторы"
+    @Operation(summary = "Обновление автора по id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Автор успешно добавлен"),
+                    @ApiResponse(responseCode = "400", description = "Невалидное поле DTO"),
+                    @ApiResponse(responseCode = "404", description = "Автор с таким id не найден"),
+            }
     )
-
-    @PostMapping()
-    public ResponseEntity<Author> createAuthor(@RequestBody Author author) {
-        Author createAuthor = authorService.addAuthor(author);
-        return ResponseEntity.ok(createAuthor);
-    }
-    @Operation(summary = "Обновление автора",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-
-                            content = @Content(
-                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = Author.class)
-                            )
-                    ),
-
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Некорректный запрос"
-                    ),
-
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Автор не найден"
-                    )
-            },
-            tags = "Авторы")
-
-    @PutMapping("{id}")
-    public ResponseEntity<Author> editAuthor(@RequestBody Author author) {
-        Author foundAuthor = authorService.editAuthor(author);
-        if (foundAuthor == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.ok(foundAuthor);
+    @PutMapping("/{id}")
+    public AuthorDto update(@PathVariable Long id,
+                            @RequestBody @Valid AuthorDto authorDto) {
+        return authorService.update(id, authorDto);
     }
 
-    @Operation(summary = "Удаление автора",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200"
-                    ),
+    @Operation(summary = "Получение автора по id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Автор успешно найден"),
+                    @ApiResponse(responseCode = "404", description = "Автор с таким id не найден"),
+            }
+    )
+    @GetMapping("/{id}")
+    public AuthorDto get(@PathVariable Long id) {
+        return authorService.get(id);
+    }
 
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Автор не найден"
-                    )
-            },
-            tags = "Авторы")
+    @Operation(summary = "Удаление автора по id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Автор успешно удален"),
+                    @ApiResponse(responseCode = "404", description = "Автор с таким id не найден"),
+            }
+    )
+    @DeleteMapping("/{id}")
+    public AuthorDto delete(@PathVariable Long id) {
+        return authorService.delete(id);
+    }
 
-    @DeleteMapping("{id}")
-    public void deleteAuthor(@PathVariable int id) {
-        authorService.removeAuthor(id);
+    @Operation(summary = "Получение списка авторов, отфильтрованных по опциональному параметру")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "Авторы успешно найдены"),
+                    @ApiResponse(responseCode = "400", description = "Некорректные параметры фильтрации"),
+            }
+    )
+    @GetMapping
+    public List<AuthorDto> list(@Valid AuthorFilter authorFilter) {
+        return authorService.list(authorFilter);
     }
 }
