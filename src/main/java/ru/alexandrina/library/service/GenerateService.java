@@ -65,7 +65,7 @@ public class GenerateService {
 
 
         int generateAuthors = faker.random().nextInt(1, 3);
-        int generateGenres = faker.random().nextInt(1, 4);
+        int generatePublishers = faker.random().nextInt(1, 4);
 
         book.setAuthors(
                 Stream.generate(() ->
@@ -80,7 +80,7 @@ public class GenerateService {
                 Stream.generate(() ->
                                 randomPublisher((int) publisherRepository.count())
                         )
-                        .limit(generateGenres)
+                        .limit(generatePublishers)
                         .distinct()
                         .collect(Collectors.toList())
         );
@@ -89,7 +89,7 @@ public class GenerateService {
 
     public Publisher generatePublisher() {
         Publisher publisher = new Publisher();
-        publisher.setTitle(faker.book().genre());
+        publisher.setTitle(faker.book().publisher());
         return publisher;
     }
 

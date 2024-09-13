@@ -65,6 +65,7 @@ public class BookService {
         );
     }
 
+
     @Transactional
     public BookResponseDto delete(Long id) {
         Book book = bookRepository.findById(id)
@@ -92,8 +93,8 @@ public class BookService {
             if (bookFilter.getAuthor() != null) {
                 predicates.add(criteriaBuilder.in(root.get("authors").get("name")).in(bookFilter.getAuthor()));
             }
-            if (bookFilter.getGenre() != null) {
-                predicates.add(criteriaBuilder.in(root.get("genres").get("title")).in(bookFilter.getGenre()));
+            if (bookFilter.getPublisher() != null) {
+                predicates.add(criteriaBuilder.in(root.get("publishers").get("title")).in(bookFilter.getPublisher()));
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[]{}));
         });

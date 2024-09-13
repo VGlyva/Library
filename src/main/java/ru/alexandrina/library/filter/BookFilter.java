@@ -17,5 +17,5 @@ public class BookFilter {
     @Positive
     private Integer pagesTo;
     private String author;
-    private String genre;
+    private String publisher;
 }

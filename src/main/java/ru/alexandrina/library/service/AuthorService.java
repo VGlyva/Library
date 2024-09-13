@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alexandrina.library.dto.AuthorDto;
 import ru.alexandrina.library.entity.Author;
+import ru.alexandrina.library.entity.Book;
 import ru.alexandrina.library.exception.AuthorNotFoundException;
 import ru.alexandrina.library.filter.AuthorFilter;
 import ru.alexandrina.library.mapper.AuthorMapper;

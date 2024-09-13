@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.alexandrina.library.dto.BookRequestDto;
 import ru.alexandrina.library.dto.BookResponseDto;
+import ru.alexandrina.library.entity.Author;
+import ru.alexandrina.library.entity.Book;
 import ru.alexandrina.library.filter.BookFilter;
 import ru.alexandrina.library.service.BookService;
 
@@ -68,6 +70,7 @@ public class BookController {
     public BookResponseDto get(@PathVariable Long id) {
         return bookService.get(id);
     }
+
 
     @Operation(summary = "Удаление книги по id")
     @ApiResponses(

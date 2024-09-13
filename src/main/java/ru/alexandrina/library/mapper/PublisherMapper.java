@@ -12,10 +12,10 @@ import ru.alexandrina.library.entity.Publisher;
 public interface PublisherMapper {
 
     @Mapping(target = "id", ignore = true)
-    public Publisher toEntity(PublisherDto genreDto);
+    public Publisher toEntity(PublisherDto publisherDto);
 
     @Mapping(target = "id", ignore = true)
-    void fillEntity(PublisherDto genreDto, @MappingTarget Publisher genre);
+    void fillEntity(PublisherDto publisherDto, @MappingTarget Publisher publisher);
 
     PublisherDto toDto(Publisher publisher);
 }
