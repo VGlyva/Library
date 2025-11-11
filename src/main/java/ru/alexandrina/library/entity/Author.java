@@ -5,28 +5,33 @@ import jakarta.persistence.*;
 import lombok.*;
 
 
-import java.util.List;
+import java.time.LocalDate;
+import java.util.Collection;
 
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Data
-@ToString
-@Table(name = "author")
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "authors")
 public class Author {
-
     @Id
-    @GeneratedValue
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column
+    @Column(nullable = false, length = 30)
     private String name;
 
-    @Column
-    private int age;
+    @Column(nullable = false, length = 30)
+    private String surname;
 
-    @OneToMany(mappedBy = "author")
-    private List<Book> books;
+    @Column(nullable = false)
+    private LocalDate birthDate;
 
+    @ManyToMany
+    @JoinTable(
+            name = "authors_to_books",
+            joinColumns = @JoinColumn(name = "author_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id")
+    )
+    private Collection<Book> books;
 }
